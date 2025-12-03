@@ -1,29 +1,30 @@
+/******************** RDT 2.0 ********************/
+/************ Yuwei ZHAO (2025-12-03) ************/
+
 package com.ouc.tcp.test;
+
+import com.ouc.tcp.client.TCP_Receiver_ADT;
+import com.ouc.tcp.message.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import com.ouc.tcp.client.TCP_Receiver_ADT;
-import com.ouc.tcp.message.*;
-
 public class TCP_Receiver extends TCP_Receiver_ADT {
+    private TCP_PACKET ackPack;  // Reply to ACK message segment
+    int sequence = 1; // Used to record the current sequence number of the packet to be received. Note that the packet sequence number is not entirely accurate.
 
-    private TCP_PACKET ackPack;  // 回复的 ACK 报文段
-
+    /* Constructor Func */
     public TCP_Receiver() {
-        super();  // 调用超类构造函数
-        super.initTCP_Receiver(this);  // 初始化 TCP 接收端
+        super(); // Call the constructor of the superclass
+        super.initTCP_Receiver(this); // Initialize the TCP receiver side
     }
 
-    /**
-     * 接收数据报
-     */
     @Override
-    public void rdt_recv(TCP_PACKET recvPack) {
+    public void rdt_recv(TCP_PACKET recvPack) { // Received data packet - Check the checksum, and set the reply ACK message segment
+        // Received data packet - Check the checksum, and set the reply ACK message segment
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
-            // 生成 ACK 报文段（设置确认号）
             this.tcpH.setTh_ack(recvPack.getTcpH().getTh_seq());
             this.ackPack = new TCP_PACKET(this.tcpH, this.tcpS, recvPack.getSourceAddr());
             this.tcpH.setTh_sum(CheckSum.computeChkSum(this.ackPack));
@@ -32,17 +33,17 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             System.out.println("ACK: " + recvPack.getTcpH().getTh_seq());
             System.out.println();
 
-            // 回复 ACK 报文段
+            // Reply to ACK message segment
             reply(this.ackPack);
 
-            // 将接收到的正确有序的数据插入 data 队列，准备交付
+            // Insert the received correct and ordered data into the data queue, preparing for delivery
             this.dataQueue.add(recvPack.getTcpS().getData());
 
-            // 交付数据（每 20 组数据交付一次）
+            // Deliver data (per 20 sets of data)
             if (this.dataQueue.size() == 20)
                 deliver_data();
         } else {
-            // 生成 NACK 报文段
+            // Generate NACK message segment
             this.tcpH.setTh_ack(-1);
             this.ackPack = new TCP_PACKET(this.tcpH, this.tcpS, recvPack.getSourceAddr());
             this.tcpH.setTh_sum(CheckSum.computeChkSum(this.ackPack));
@@ -55,12 +56,9 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         }
     }
 
-    /**
-     * 交付数据: 将数据写入文件
-     */
     @Override
-    public void deliver_data() {
-        // 检查 this.dataQueue，将数据写入文件
+    public void deliver_data() { // Deliver data (write data to file); no modifications required
+        // Check the `this.dataQueue` and write the data to the file
         try {
             File file = new File("recvData.txt");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
@@ -68,12 +66,12 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
             while (!this.dataQueue.isEmpty()) {
                 int[] data = this.dataQueue.poll();
 
-                // 将数据写入文件
+                // Write data to a file
                 for (int i = 0; i < data.length; i++) {
                     writer.write(data[i] + "\n");
                 }
 
-                writer.flush();  // 清空输出缓存
+                writer.flush(); // Clear out caches
             }
 
             writer.close();
@@ -82,26 +80,22 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
         }
     }
 
-    /**
-     * 回复 ACK 报文段
-     * 不可靠发送
-     * 仅需修改错误标志
-     */
     @Override
-    public void reply(TCP_PACKET replyPack) {
-        // 设置错误控制标志
-        // 0: 信道无差错
-        // 1: 只出错
-        // 2: 只丢包
-        // 3: 只延迟
-        // 4: 出错 / 丢包
-        // 5: 出错 / 延迟
-        // 6: 丢包 / 延迟
-        // 7: 出错 / 丢包 / 延迟
+    public void reply(TCP_PACKET replyPack) { // Reply to the ACK message segment
+        /*
+            <- Error control flag Setting ->
+            - eFlag = 0: Channel error-free
+            - eFlag = 1: Only errors
+            - eFlag = 2: Only packet loss
+            - eFlag = 3: Only delay
+            - eFlag = 4: Errors / Packet loss
+            - eFlag = 5: Errors / Delay
+            - eFlag = 6: Packet loss / Delay
+            - eFlag = 7: Errors / Packet loss / Delay
+        */
         this.tcpH.setTh_eflag((byte) 0);
 
-        // 发送数据报
+        // Send data packet
         this.client.send(replyPack);
     }
-
 }
