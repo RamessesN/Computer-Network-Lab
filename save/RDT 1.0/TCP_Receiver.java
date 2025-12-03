@@ -41,7 +41,7 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
 
     @Override
     public void deliver_data() { // Deliver data (write data to file); no modifications required
-        // Check the dataQueue and write the data to the file
+        // Check the `this.dataQueue` and write the data to the file
         try {
             File file = new File("recvData.txt");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
@@ -64,17 +64,17 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
 
     @Override
     public void reply(TCP_PACKET replyPack) { // Reply to the ACK message segment
-    /*
-        <- Error control flag Setting ->
-        - eFlag = 0: Channel error-free
-        - eFlag = 1: Only errors
-        - eFlag = 2: Only packet loss
-        - eFlag = 3: Only delay
-        - eFlag = 4: Errors / Packet loss
-        - eFlag = 5: Errors / Delay
-        - eFlag = 6: Packet loss / Delay
-        - eFlag = 7: Errors / Packet loss / Delay
-    */
+        /*
+            <- Error control flag Setting ->
+            - eFlag = 0: Channel error-free
+            - eFlag = 1: Only errors
+            - eFlag = 2: Only packet loss
+            - eFlag = 3: Only delay
+            - eFlag = 4: Errors / Packet loss
+            - eFlag = 5: Errors / Delay
+            - eFlag = 6: Packet loss / Delay
+            - eFlag = 7: Errors / Packet loss / Delay
+        */
         this.tcpH.setTh_eflag((byte) 0);
 
         // Send data packet

@@ -7,7 +7,6 @@ import com.ouc.tcp.client.TCP_Sender_ADT;
 import com.ouc.tcp.message.*;
 
 public class TCP_Sender extends TCP_Sender_ADT {
-
     private TCP_PACKET tcpPack;  // The TCP data packet to be sent
     private volatile int flag = 0;
 
