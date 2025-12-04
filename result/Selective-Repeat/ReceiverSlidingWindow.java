@@ -91,7 +91,7 @@ public class ReceiverSlidingWindow {
                     writer.write(data[i] + "\n");
                 }
 
-                writer.flush();  // Clear out Caches
+                writer.flush(); // Clear out Caches
             }
 
             writer.close();

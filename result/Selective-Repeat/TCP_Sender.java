@@ -21,7 +21,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
     }
 
     @Override
-    public void rdt_send(int dataIndex, int[] appData) {// Reliable transmission (application layer call): Encapsulate application layer data and generate TCP data packets; Need to be revised
+    public void rdt_send(int dataIndex, int[] appData) { // Reliable transmission (application layer call): Encapsulate application layer data and generate TCP data packets; Need to be revised
         // Generate the TCP data packet (set the sequence number, data field, and checksum), and pay attention to the order of packaging
         this.tcpH.setTh_seq(dataIndex * appData.length + 1); // Set the package number to the byte stream number
         this.tcpS.setData(appData);
