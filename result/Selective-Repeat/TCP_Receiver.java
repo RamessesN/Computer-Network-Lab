@@ -1,24 +1,25 @@
+/******************** Selective-Repeat ********************/
+/************ Yuwei ZHAO (2025-12-04) ************/
+
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.TCP_Receiver_ADT;
 import com.ouc.tcp.message.*;
 
 public class TCP_Receiver extends TCP_Receiver_ADT {
-
-    private TCP_PACKET ackPack;  // 回复的 ACK 报文段
+    private TCP_PACKET ackPack; // Reply to ACK message segment
 
     private ReceiverSlidingWindow window = new ReceiverSlidingWindow(this.client);
 
+    /* Constructor Func */
     public TCP_Receiver() {
-        super();  // 调用超类构造函数
-        super.initTCP_Receiver(this);  // 初始化 TCP 接收端
+        super(); // Call the constructor of the superclass
+        super.initTCP_Receiver(this); // Initialize the TCP receiver side
     }
 
-    /**
-     * 接收数据报
-     */
     @Override
     public void rdt_recv(TCP_PACKET recvPack) {
+        // Received data packet - Check the checksum, and set the reply ACK message segment
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
             int toACKSequence = -1;
             try {
@@ -32,38 +33,31 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
                 this.ackPack = new TCP_PACKET(this.tcpH, this.tcpS, recvPack.getSourceAddr());
                 this.tcpH.setTh_sum(CheckSum.computeChkSum(this.ackPack));
 
-                // 回复 ACK 报文段
+                // Reply to ACK message segment
                 reply(this.ackPack);
             }
         }
     }
 
-    /**
-     * 交付数据: 将数据写入文件
-     */
     @Override
     public void deliver_data() { }
 
-    /**
-     * 回复 ACK 报文段
-     * 不可靠发送
-     * 仅需修改错误标志
-     */
     @Override
-    public void reply(TCP_PACKET replyPack) {
-        // 设置错误控制标志
-        // 0: 信道无差错
-        // 1: 只出错
-        // 2: 只丢包
-        // 3: 只延迟
-        // 4: 出错 / 丢包
-        // 5: 出错 / 延迟
-        // 6: 丢包 / 延迟
-        // 7: 出错 / 丢包 / 延迟
+    public void reply(TCP_PACKET replyPack) { // Reply to the ACK message segment
+        /*
+            <- Error control flag Setting ->
+            - eFlag = 0: Channel error-free
+            - eFlag = 1: Only errors
+            - eFlag = 2: Only packet loss
+            - eFlag = 3: Only delay
+            - eFlag = 4: Errors / Packet loss
+            - eFlag = 5: Errors / Delay
+            - eFlag = 6: Packet loss / Delay
+            - eFlag = 7: Errors / Packet loss / Delay
+        */
         this.tcpH.setTh_eflag((byte) 7);
 
-        // 发送数据报
+        // Send data packet
         this.client.send(replyPack);
     }
-
 }

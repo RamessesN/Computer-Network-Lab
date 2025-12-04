@@ -1,3 +1,6 @@
+/******************** Selective-Repeat ********************/
+/************ Yuwei ZHAO (2025-12-04) ************/
+
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.Client;
@@ -16,6 +19,7 @@ public class ReceiverSlidingWindow {
     private int base = 0;
     private TCP_PACKET[] packets = new TCP_PACKET[this.size];
     Queue<int[]> dataQueue = new LinkedBlockingQueue();
+
     private int counts = 0;
 
     public ReceiverSlidingWindow(Client client) {
@@ -32,6 +36,7 @@ public class ReceiverSlidingWindow {
             if (left <= 0) {
                 left = 1;
             }
+
             if (left <= currentSequence && currentSequence <= right) {
                 return currentSequence;
             }
@@ -41,10 +46,8 @@ public class ReceiverSlidingWindow {
             if (currentSequence == this.base) {
                 this.slid();
             }
-
             return currentSequence;
         }
-
         return -1;
     }
 
@@ -74,11 +77,8 @@ public class ReceiverSlidingWindow {
         }
     }
 
-    /**
-     * 交付数据: 将数据写入文件
-     */
-    public void deliver_data() {
-        // 检查 this.dataQueue，将数据写入文件
+    public void deliver_data() { // Deliver data (write data to file); no modifications required
+        // Check the `this.dataQueue` and write the data to the file
         try {
             File file = new File("recvData.txt");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
@@ -86,12 +86,12 @@ public class ReceiverSlidingWindow {
             while (!this.dataQueue.isEmpty()) {
                 int[] data = this.dataQueue.poll();
 
-                // 将数据写入文件
+                // Write data to a file
                 for (int i = 0; i < data.length; i++) {
                     writer.write(data[i] + "\n");
                 }
 
-                writer.flush();  // 清空输出缓存
+                writer.flush();  // Clear out Caches
             }
 
             writer.close();
@@ -99,5 +99,4 @@ public class ReceiverSlidingWindow {
             e.printStackTrace();
         }
     }
-
 }
