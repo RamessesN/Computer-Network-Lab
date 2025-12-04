@@ -18,6 +18,30 @@ RDT 4.0: 流水线协议 Go-Back-N, Selective-Response
 
 RDT 5.0: 拥塞控制 Tahoe, Reno
 
+---
+- eFlag = 0: 信道无差错
+- eFlag = 1: 只出错
+- eFlag = 2: 只丢包
+- eFlag = 3: 只延迟
+- eFlag = 4: 出错 / 丢包
+- eFlag = 5: 出错 / 延迟
+- eFlag = 6: 丢包 / 延迟
+- eFlag = 7: 出错 / 丢包 / 延迟
+---
+
+|     Version      | Sender | Receiver |
+|:----------------:|:------:|:--------:|
+|     RDT 1.0      |   0    |    0     |
+|     RDT 2.0      |   1    |    0     |
+|     RDT 2.1      |   1    |    1     |
+|     RDT 2.2      |   1    |    1     |
+|     RDT 3.0      |   4    |    4     |
+|    Go-Back-N     |   \    |    \     |
+| Selective-Repeat |   \    |    \     |
+|       TCP        |   \    |    \     |
+|    TCP Tahoe     |   \    |    \     |
+|     TCP Reno     |   \    |    \     |  
+
 ## Install
 
 本项目使用 JetBrains IntelliJ IDEA 编写，IDEA 可通过 TCP.iml 导入项目。
