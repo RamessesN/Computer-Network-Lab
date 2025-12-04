@@ -1,9 +1,12 @@
+/******************** Go-Back-N ********************/
+/************ Yuwei ZHAO (2025-12-04) ************/
+
 package com.ouc.tcp.test;
+
+import java.util.Timer;
 
 import com.ouc.tcp.client.Client;
 import com.ouc.tcp.message.TCP_PACKET;
-
-import java.util.Timer;
 
 public class SenderSlidingWindow {
     private Client client;
