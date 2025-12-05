@@ -7,7 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="jars" level="project" />
-    <orderEntry type="library" name="TCP_TestSys_Linux" level="project" />
+    <orderEntry type="library" exported="" name="TCP_TestSys_4_Linux_and_MacOS" level="project" />
   </component>
 </module>
