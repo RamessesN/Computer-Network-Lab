@@ -1,4 +1,4 @@
-/******************** Transmission-Control-Protocol ********************/
+/******************** TCP-Tahoe ********************/
 /************ Yuwei ZHAO (2025-12-05) ************/
 
 package com.ouc.tcp.test;
