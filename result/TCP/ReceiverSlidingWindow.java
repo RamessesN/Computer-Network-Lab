@@ -39,20 +39,17 @@ public class ReceiverSlidingWindow {
         int currentSequence = (packet.getTcpH().getTh_seq() - 1) / 100;
 
         int index = 0;
-        while (index < this.packets.size()
-                && currentSequence > (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
+        while (index < this.packets.size() && currentSequence > (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
             index++;
         }
 
-        if (index == this.packets.size()
-                || currentSequence != (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
+        if (index == this.packets.size() || currentSequence != (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
             this.packets.add(index, packet);
         }
     }
 
     private void slid() {
-        while (!this.packets.isEmpty()
-                && (this.packets.getFirst().getTcpH().getTh_seq() - 1) / 100 == this.expectedSequence) {
+        while (!this.packets.isEmpty() && (this.packets.getFirst().getTcpH().getTh_seq() - 1) / 100 == this.expectedSequence) {
             this.dataQueue.add(this.packets.poll().getTcpS().getData());
             this.expectedSequence++;
         }
