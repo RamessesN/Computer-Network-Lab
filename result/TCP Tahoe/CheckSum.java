@@ -1,26 +1,29 @@
-package com.ouc.tcp.test;
+/******************** Transmission-Control-Protocol ********************/
+/************ Yuwei ZHAO (2025-12-05) ************/
 
-import java.util.zip.CRC32;
+package com.ouc.tcp.test;
 
 import com.ouc.tcp.message.TCP_HEADER;
 import com.ouc.tcp.message.TCP_PACKET;
 
+import java.util.zip.CRC32;
+
 public class CheckSum {
+    public static short computeChkSum(TCP_PACKET tcpPack) { // Calculate the checksum of the TCP packet (Only verify the seq, ack and data fields in the TCP header)
+        // Extract TCP header information
+        TCP_HEADER header = tcpPack.getTcpH();
 
-	/**
-	 * 计算 TCP 报文段校验和: 只需校验 TCP 首部中的 seq, ack 和 sum, 以及 TCP 数据部分
-	 */
-	public static short computeChkSum(TCP_PACKET tcpPack) {
-		CRC32 crc32 = new CRC32();
-		TCP_HEADER header = tcpPack.getTcpH();
-		crc32.update(header.getTh_seq());
-		crc32.update(header.getTh_ack());
+        // Calculate the checksum using the CRC32 algorithm
+        CRC32 crc32 = new CRC32();
+        crc32.update(header.getTh_seq());
+        crc32.update(header.getTh_ack());
 
-		for (int i : tcpPack.getTcpS().getData()) {
-			crc32.update(i);
-		}
+        // Traverse the data fields and update each data item to the checksum.
+        for (int i : tcpPack.getTcpS().getData()) {
+            crc32.update(i);
+        }
 
-		return (short) crc32.getValue();
-	}
-	
+        // Obtain the calculated checksum and convert it to the short data type for return
+        return (short) crc32.getValue();
+    }
 }

@@ -1,3 +1,6 @@
+/******************** Transmission-Control-Protocol ********************/
+/************ Yuwei ZHAO (2025-12-05) ************/
+
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.Client;
@@ -11,7 +14,7 @@ public class SenderSlidingWindow {
     private Client client;
     public int cwnd = 1;
     private volatile int ssthresh = 16;
-    private int count = 0;  // 拥塞避免： cwmd = cwmd + 1 / cwnd，每一个对新包的 ACK count++，所以 count == cwmd 时，cwnd = cwnd + 1
+    private int count = 0; // Congestion control： cwmd = cwmd + 1 / cwnd，for each new package ACK count++，therefore when count == cwmd，cwnd = cwnd + 1
     private Hashtable<Integer, TCP_PACKET> packets = new Hashtable<>();
     private Hashtable<Integer, UDT_Timer> timers = new Hashtable<>();
     private int lastACKSequence = -1;
