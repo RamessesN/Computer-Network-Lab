@@ -1,3 +1,6 @@
+/******************** TCP-Reno ********************/
+/************ Yuwei ZHAO (2025-12-05) ************/
+
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.Client;
@@ -10,11 +13,13 @@ public class SenderSlidingWindow {
     private Client client;
     public int cwnd = 1;
     private volatile int ssthresh = 16;
-    private int count = 0;  // 拥塞避免： cwmd = cwmd + 1 / cwnd，每一个对新包的 ACK count++，所以 count == cwmd 时，cwnd = cwnd + 1
+    private int count = 0; // Congestion control： cwmd = cwmd + 1 / cwnd，for each new package ACK count++，therefore when count == cwmd，cwnd = cwnd + 1
     private Hashtable<Integer, TCP_PACKET> packets = new Hashtable<>();
     private UDT_Timer timer;
     private int lastACKSequence = -1;
     private int lastACKSequenceCount = 0;
+
+    private boolean isFastRecovery = false;
 
     public SenderSlidingWindow(Client client) {
         this.client = client;
@@ -37,6 +42,7 @@ public class SenderSlidingWindow {
     public void receiveACK(int currentSequence) {
         if (currentSequence == this.lastACKSequence) {
             this.lastACKSequenceCount++;
+
             if (this.lastACKSequenceCount == 4) {
                 TCP_PACKET packet = this.packets.get(currentSequence + 1);
                 if (packet != null) {
@@ -50,6 +56,9 @@ public class SenderSlidingWindow {
                 }
 
                 fastRecovery();
+            } else if (this.lastACKSequenceCount > 4) {
+                this.cwnd++;
+                System.out.println("--- Fast Recovery Inflate: cwnd " + (this.cwnd - 1) + " -> " + this.cwnd);
             }
         } else {
             List sequenceList = new ArrayList(this.packets.keySet());
@@ -70,41 +79,56 @@ public class SenderSlidingWindow {
             this.lastACKSequence = currentSequence;
             this.lastACKSequenceCount = 1;
 
-            if (this.cwnd < this.ssthresh) {
-                this.cwnd++;
-                System.out.println("########### window expand ############");
+            if (this.isFastRecovery) {
+                System.out.println("--- Fast Recovery Exit ---");
+                this.cwnd = this.ssthresh;
+                this.isFastRecovery = false;
+                System.out.println("cwnd reset to ssthresh: " + this.cwnd);
             } else {
-                this.count++;
-                if (this.count >= this.cwnd) {
-                    this.count -= this.cwnd;
+                if (this.cwnd < this.ssthresh) {
                     this.cwnd++;
-                    System.out.println("########### window expand ############");
+                    System.out.println("########### Slow Start: window expand ############");
+                } else {
+                    this.count++;
+                    if (this.count >= this.cwnd) {
+                        this.count -= this.cwnd;
+                        this.cwnd++;
+                        System.out.println("########### Congestion Avoidance: window expand ############");
+                    }
                 }
             }
         }
     }
 
     public void slowStart() {
+        System.out.println("--- Slow Start ---");
         System.out.println("00000 cwnd: " + this.cwnd);
         System.out.println("00000 ssthresh: " + this.ssthresh);
+
         this.ssthresh = this.cwnd / 2;
         if (this.ssthresh < 2) {
             this.ssthresh = 2;
         }
         this.cwnd = 1;
+        this.isFastRecovery = false;
+
         System.out.println("11111 cwnd: " + this.cwnd);
         System.out.println("11111 ssthresh: " + this.ssthresh);
     }
 
     public void fastRecovery() {
-        System.out.println("Fast Recovery");
+        System.out.println("--- Fast Recovery ---");
         System.out.println("00000 cwnd: " + this.cwnd);
         System.out.println("00000 ssthresh: " + this.ssthresh);
+
         this.ssthresh = this.cwnd / 2;
         if (this.ssthresh < 2) {
             this.ssthresh = 2;
         }
+
         this.cwnd = this.ssthresh;
+        this.isFastRecovery = true;
+
         System.out.println("11111 cwnd: " + this.cwnd);
         System.out.println("11111 ssthresh: " + this.ssthresh);
     }

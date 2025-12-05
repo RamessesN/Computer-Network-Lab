@@ -1,3 +1,6 @@
+/******************** TCP-Reno ********************/
+/************ Yuwei ZHAO (2025-12-05) ************/
+
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.Client;
@@ -37,20 +40,17 @@ public class ReceiverSlidingWindow {
         int currentSequence = (packet.getTcpH().getTh_seq() - 1) / 100;
 
         int index = 0;
-        while (index < this.packets.size()
-                && currentSequence > (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
+        while (index < this.packets.size() && currentSequence > (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
             index++;
         }
 
-        if (index == this.packets.size()
-                || currentSequence != (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
+        if (index == this.packets.size() || currentSequence != (this.packets.get(index).getTcpH().getTh_seq() - 1) / 100) {
             this.packets.add(index, packet);
         }
     }
 
     private void slid() {
-        while (!this.packets.isEmpty()
-                && (this.packets.getFirst().getTcpH().getTh_seq() - 1) / 100 == this.expectedSequence) {
+        while (!this.packets.isEmpty() && (this.packets.getFirst().getTcpH().getTh_seq() - 1) / 100 == this.expectedSequence) {
             this.dataQueue.add(this.packets.poll().getTcpS().getData());
             this.expectedSequence++;
         }
@@ -60,11 +60,8 @@ public class ReceiverSlidingWindow {
         }
     }
 
-    /**
-     * 交付数据: 将数据写入文件
-     */
-    public void deliver_data() {
-        // 检查 this.dataQueue，将数据写入文件
+    public void deliver_data() { // Deliver data (write data to file); no modifications required
+        // Check the `this.dataQueue` and write the data to the file
         try {
             File file = new File("recvData.txt");
             BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
@@ -72,12 +69,12 @@ public class ReceiverSlidingWindow {
             while (!this.dataQueue.isEmpty()) {
                 int[] data = this.dataQueue.poll();
 
-                // 将数据写入文件
+                // Write data to a file
                 for (int i = 0; i < data.length; i++) {
                     writer.write(data[i] + "\n");
                 }
 
-                writer.flush();  // 清空输出缓存
+                writer.flush(); // Clear out Caches
             }
 
             writer.close();
@@ -85,5 +82,4 @@ public class ReceiverSlidingWindow {
             e.printStackTrace();
         }
     }
-
 }

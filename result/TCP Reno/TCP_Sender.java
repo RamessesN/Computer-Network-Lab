@@ -1,3 +1,6 @@
+/******************** TCP-Reno ********************/
+/************ Yuwei ZHAO (2025-12-05) ************/
+
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.TCP_Sender_ADT;
@@ -6,25 +9,21 @@ import com.ouc.tcp.client.UDT_Timer;
 import com.ouc.tcp.message.*;
 
 public class TCP_Sender extends TCP_Sender_ADT {
-
-    private TCP_PACKET tcpPack;  // 待发送的 TCP 数据报
+    private TCP_PACKET tcpPack; // The TCP data packet to be sent
     private volatile int flag = 1;
 
     private SenderSlidingWindow window = new SenderSlidingWindow(this.client);
 
+    /* Constructor Func */
     public TCP_Sender() {
-        super();  // 调用超类构造函数
-        super.initTCP_Sender(this);  // 初始化 TCP 发送端
+        super(); // Call the constructor of the superclass
+        super.initTCP_Sender(this); // Initialize the TCP receiver side
     }
 
-    /**
-     * 应用层调用
-     * 可靠发送: 封装应用层数据, 产生 TCP 数据报
-     */
     @Override
-    public void rdt_send(int dataIndex, int[] appData) {
-        // 生成 TCP 数据报（设置序号、数据字段、校验和)，注意打包的顺序
-        this.tcpH.setTh_seq(dataIndex * appData.length + 1);  // 包序号设置为字节流号
+    public void rdt_send(int dataIndex, int[] appData) { // Reliable transmission (application layer call): Encapsulate application layer data and generate TCP data packets; Need to be revised
+        // Generate the TCP data packet (set the sequence number, data field, and checksum), and pay attention to the order of packaging
+        this.tcpH.setTh_seq(dataIndex * appData.length + 1); // Set the package number to the byte stream number
         this.tcpS.setData(appData);
         this.tcpPack = new TCP_PACKET(this.tcpH, this.tcpS, this.destinAddr);
 
@@ -50,18 +49,39 @@ public class TCP_Sender extends TCP_Sender_ADT {
             e.printStackTrace();
         }
 
-        // 发送 TCP 数据报
+        // Send TCP data packet
         udt_send(this.tcpPack);
+        // this.flag = 0;
+
+        // Wait for the ACK message
+        // waitACK();
+        // while (this.flag == 0) ;
+    }
+
+    @Override
+    public void udt_send(TCP_PACKET stcpPack) { // Unreliable transmission - Send the packaged TCP data packet through an unreliable transmission channel; only the error flag needs to be modified.
+        /*
+            <- Error control flag Setting ->
+            - eFlag = 0: Channel error-free
+            - eFlag = 1: Only errors
+            - eFlag = 2: Only packet loss
+            - eFlag = 3: Only delay
+            - eFlag = 4: Errors / Packet loss
+            - eFlag = 5: Errors / Delay
+            - eFlag = 6: Packet loss / Delay
+            - eFlag = 7: Errors / Packet loss / Delay
+        */
+        this.tcpH.setTh_eflag((byte) 7);
+
+        // Send data packet
+        this.client.send(stcpPack);
     }
 
     @Override
     public void waitACK() { }
 
-    /**
-     * 接收 ACK 报文段
-     */
     @Override
-    public void recv(TCP_PACKET recvPack) {
+    public void recv(TCP_PACKET recvPack) { // Received ACK message: Check the checksum, insert the confirmation number into the ack queue; The confirmation number for NACK is -1; No modification is required.
         if (CheckSum.computeChkSum(recvPack) == recvPack.getTcpH().getTh_sum()) {
             System.out.println();
             System.out.println("Receive ACK Number: " + recvPack.getTcpH().getTh_ack());
@@ -72,27 +92,7 @@ public class TCP_Sender extends TCP_Sender_ADT {
                 this.flag = 1;
             }
         }
-    }
-
-    /**
-     * 不可靠发送
-     * 将打包好的 TCP 数据报通过不可靠传输信道发送
-     * 仅需修改错误标志
-     */
-    @Override
-    public void udt_send(TCP_PACKET stcpPack) {
-        // 设置错误控制标志
-        // 0: 信道无差错
-        // 1: 只出错
-        // 2: 只丢包
-        // 3: 只延迟
-        // 4: 出错 / 丢包
-        // 5: 出错 / 延迟
-        // 6: 丢包 / 延迟
-        // 7: 出错 / 丢包 / 延迟
-        this.tcpH.setTh_eflag((byte) 7);
-
-        // 发送数据报
-        this.client.send(stcpPack);
+        // Process the ACK message
+        // waitACK();
     }
 }
