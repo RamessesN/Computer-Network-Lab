@@ -4,7 +4,7 @@
 package com.ouc.tcp.test;
 
 import com.ouc.tcp.client.TCP_Receiver_ADT;
-import com.ouc.tcp.message.*;
+import com.ouc.tcp.message.TCP_PACKET;
 
 public class TCP_Receiver extends TCP_Receiver_ADT {
     private TCP_PACKET ackPack; // Reply to ACK message segment
@@ -34,6 +34,12 @@ public class TCP_Receiver extends TCP_Receiver_ADT {
 
             // Reply to ACK message segment
             reply(this.ackPack);
+        } else {
+            System.out.println("CheckSum Error: Packet Corrupted.");
+
+            if (this.ackPack != null) {
+                reply(this.ackPack);
+            }
         }
     }
 

@@ -13,7 +13,8 @@ public class SenderSlidingWindow {
     private Client client;
     public int cwnd = 1;
     private volatile int ssthresh = 16;
-    private int count = 0; // Congestion control： cwmd = cwmd + 1 / cwnd，for each new package ACK count++，therefore when count == cwmd，cwnd = cwnd + 1
+    private int count = 0; // Congestion control： cwmd = cwmd + 1 / cwnd，
+    // for each new package ACK count++，therefore when count == cwmd，cwnd = cwnd + 1
     private Hashtable<Integer, TCP_PACKET> packets = new Hashtable<>();
     private UDT_Timer timer;
     private int lastACKSequence = -1;
@@ -43,7 +44,7 @@ public class SenderSlidingWindow {
         if (currentSequence == this.lastACKSequence) {
             this.lastACKSequenceCount++;
 
-            if (this.lastACKSequenceCount == 4) {
+            if (this.lastACKSequenceCount >= 4) {
                 TCP_PACKET packet = this.packets.get(currentSequence + 1);
                 if (packet != null) {
                     this.client.send(packet);
@@ -52,13 +53,15 @@ public class SenderSlidingWindow {
                         this.timer.cancel();
                     }
                     this.timer = new UDT_Timer();
-                    this.timer.schedule(new RetransmitTask(this), 3000, 300);
+                    this.timer.schedule(new RetransmitTask(this), 3000, 3000);
                 }
 
-                fastRecovery();
-            } else if (this.lastACKSequenceCount > 4) {
-                this.cwnd++;
-                System.out.println("--- Fast Recovery Inflate: cwnd " + (this.cwnd - 1) + " -> " + this.cwnd);
+                if (this.lastACKSequenceCount == 4) {
+                    fastRecovery();
+                } else {
+                    this.cwnd++;
+                    System.out.println("--- Fast Recovery Inflate: cwnd " + (this.cwnd - 1) + " -> " + this.cwnd);
+                }
             }
         } else {
             List sequenceList = new ArrayList(this.packets.keySet());
@@ -73,7 +76,7 @@ public class SenderSlidingWindow {
 
             if (this.packets.size() != 0) {
                 this.timer = new UDT_Timer();
-                this.timer.schedule(new RetransmitTask(this), 3000, 300);
+                this.timer.schedule(new RetransmitTask(this), 3000, 3000);
             }
 
             this.lastACKSequence = currentSequence;
@@ -126,7 +129,7 @@ public class SenderSlidingWindow {
             this.ssthresh = 2;
         }
 
-        this.cwnd = this.ssthresh;
+        this.cwnd = this.ssthresh + 3;
         this.isFastRecovery = true;
 
         System.out.println("11111 cwnd: " + this.cwnd);
